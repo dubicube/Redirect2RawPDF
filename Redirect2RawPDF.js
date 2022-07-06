@@ -1,14 +1,48 @@
-function checkForPDF()
-{
-    // Get all the links
-    var iframeList = document.getElementsByTagName("iframe");
-    for (const ifr of iframeList) {
-        console.log(ifr.src);
-        // If the iframe has a src attribute, and the src attribute is a PDF, then we have a PDF
-        if (ifr.src != undefined && ifr.src.indexOf(".pdf") != -1) {
-            // Redirect to raw pdf page
-            window.location = (ifr.src)
-            break;
+function checkForPDF() {
+    var redirected = false;
+    if (!redirected) {
+        // When a website embeds a pdf reader, it appears that there is always a link to the raw pdf file
+        // with the "iframe" tagname.
+        // So, here we extract all elements with "ifrmae" as tagname,
+        // and if one of these elements has a pdf link, we redirect to it.
+        var iframeList = document.getElementsByTagName("iframe");
+        for (const ifr of iframeList) {
+            // If the iframe has a src attribute, and the src attribute is a PDF, then we have a PDF
+            if (ifr.src != undefined && ifr.src.indexOf(".pdf") != -1) {
+                // Do not redirect if we are already at the same URL
+                if (window.location.href != ifr.src) {
+                    // Redirect to raw pdf page
+                    window.location = ifr.src
+                }
+                redirected = true;
+                break;
+            }
+        }
+    }
+    // This part is to handle some special Xilinx pages.
+    // I made this after discovering that the DS925 is no longer available in the standard pdf page format,
+    // but only in the weird annoying web format like here:
+    // https://docs.xilinx.com/r/en-US/ds925-zynq-ultrascale-plus
+    // There are many reasons why I don't like this web interface, but the main one is that the document is not
+    // completly loaded and you can't even search for words which are in parts that are not loaded............
+    // Seriously, who thought it was a good idea ?
+    // Anyway,
+    // So, the idea of the code bellow is to detect such pages, click on the "PDF and attachments" button
+    // to discover the pdf link, and then redirect to the pdf page.
+    if (!redirected) {
+        // Get the "PDF and attachments" button
+        var button = document.getElementsByClassName("ft-btn fluid-aside-tab-id-mapattachments")[0];
+        // If button exists
+        if (button != undefined) {
+            // Click the discovered button
+            button.click();
+            // Now that we released the "Downloadable PDF" button, we can extract the URL to the PDF page
+            var pdfLink = document.getElementsByClassName("gwt-InlineHyperlink mapattachments-viewer-link")[0];
+            // If url is successfully detected, redirect to it
+            if (pdfLink != undefined && pdfLink.href != undefined) {
+                window.location = pdfLink.href
+                redirected = true;
+            }
         }
     }
 }
@@ -33,6 +67,7 @@ const callback = function(mutationsList, observer) {
         if (mutation.type === 'childList') {
             // Call our magic function
             checkForPDF();
+            break;
         }
     }
 };
