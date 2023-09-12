@@ -8,7 +8,7 @@ function checkForPDF() {
         var iframeList = document.getElementsByTagName("iframe");
         for (const ifr of iframeList) {
             // If the iframe has a src attribute, and the src attribute is a PDF, then we have a PDF
-            if (ifr.src != undefined && ifr.src.indexOf(".pdf") != -1) {
+            if (ifr.src != undefined && (ifr.src.indexOf(".pdf") != -1 || ifr.src.startsWith("https://docs.xilinx.com/api/khub/maps/"))) {
                 // Do not redirect if we are already at the same URL
                 if (window.location.href != ifr.src) {
                     // Redirect to raw pdf page
